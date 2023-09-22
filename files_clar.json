@@ -1,6 +1,16 @@
 {
 	"addic_files": [
+		"menupatch.asi",
 		"fog_editor.asi",
-		"examplefile.ext"
+		"EasyGang.cs.",
+		"samp++.cs",
+		"samp++.ini",
+		"Player_Remover.sf",
+		"Reconnect+.sf",
+		"automapzoom.sf",
+		"drugtimer_kichiro.lua",
+		"CheckOnline_fixed.lua",
+		"Connect Tool v3.1.lua",
+		"ugenrl.lua"
 	]
 }
