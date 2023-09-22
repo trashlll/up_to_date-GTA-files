@@ -1,0 +1,27 @@
+[20:59:41] 
+SAMPFUNCS v5.4.1-final rel.21 (SA-MP 0.3.7-R1)
+Compiled: Dec 24 2018 03:13:37
+
+Copyright (c) 2013-2018, BlastHack Team <blast.hk>
+
+[20:59:41] Base address: 0x6E430000.
+[20:59:41] Initializing opcodes...
+[20:59:41] Opcodes initialized successfully. Total opcodes: 382.
+[20:59:41] Hook "CTimer::GetRealTimeScale" installed.
+[20:59:41] Hook "CPad::Update" installed.
+[20:59:41] Hook "CCamera::RenderMotionBlur" installed.
+[20:59:41] Hook "CScriptThread::AddScriptToQueue" installed.
+[20:59:41] Hook "CScriptThread::RemoveScriptFromQueue" installed.
+[20:59:41] Hook "CScriptThread::Process" installed.
+[20:59:41] Hook "WinMainLoop" installed.
+[20:59:41] Hook "CLoadingScreen::RenderSplash" installed.
+[20:59:41] Hook "CVehicle::CVehicle" installed.
+[20:59:41] Hook "CVehicle::~CVehicle" installed.
+[20:59:41] Hook "CPed::CPed" installed.
+[20:59:41] Hook "CPed::~CPed" installed.
+[20:59:41] Initializing plugins...
+[20:59:41] SF Plugin "automapzoom.sf" loaded.
+[20:59:41] SF Plugin "drugtimer.sf" loaded.
+[20:59:41] SF Plugin "GameExitFixbyRomelo.sf" loaded.
+[20:59:41] SF Plugin "Reconnect+.sf" loaded.
+[20:59:41] SF Plugin "skinchanger.sf" loaded.
