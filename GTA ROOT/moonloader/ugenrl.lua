@@ -81,37 +81,72 @@ function getFiles(folderPath, extensions)
     return files
 end
 
-if not doesFileExist('moonloader/config/' .. settingsFile) then
-    local ugenrlFiles = getFiles('moonloader/resource/ugenrl', {'wav', 'mp3'})
 
-    for key, value in pairs(settings.sounds) do
-        local soundPath = 'moonloader/resource/ugenrl/' .. value
 
-        if not doesFileExist(soundPath) then
-            local category = value:match("^([^%.]+)")
-            local found = false
+function AutoActualSounds()
+	local configFile =  'moonloader/config/' .. settingsFile
+	local ugenrlFiles = getFiles('moonloader/resource/ugenrl', {'wav', 'mp3'})
 
-            for _, file in ipairs(ugenrlFiles) do
-                local fileCategory = file:match("^([^%.]+)")
-                if fileCategory == category then
-                    found = true
-                    settings.sounds[key] = file
-                    break
-                end
-            end
+	if not doesFileExist(configFile) then
+		for key, value in pairs(settings.sounds) do
+			local soundPath = 'moonloader/resource/ugenrl/' .. value
 
-            if not found then
-                if #ugenrlFiles > 0 then
-                    local randomIndex = math.random(1, #ugenrlFiles)
-                    local randomFile = ugenrlFiles[randomIndex]
-                    settings.sounds[key] = 'ugenrl/' .. randomFile
-                end
-            end
-        end
-    end
-    inicfg.save(settings, settingsFile)
+			if not doesFileExist(soundPath) then
+				local category = value:match("^([^%.]+)")
+				local found = false
+
+				for _, file in ipairs(ugenrlFiles) do
+					local fileCategory = file:match("^([^%.]+)")
+					if fileCategory == category then
+						found = true
+						settings.sounds[key] = file
+						break
+					end
+				end
+
+				if not found then
+					if #ugenrlFiles > 0 then
+						local randomIndex = math.random(1, #ugenrlFiles)
+						local randomFile = ugenrlFiles[randomIndex]
+						settings.sounds[key] = randomFile
+					end
+				end
+			end
+		end
+	else
+		local loaded_settings = inicfg.load(nil, configFile)
+		if loaded_settings.sounds then
+			for key, value in pairs(loaded_settings.sounds) do
+				local soundPath = 'moonloader/resource/ugenrl/' .. value
+	
+				if not doesFileExist(soundPath) then
+					local category = value:match("^([^%.]+)")
+					local found = false
+	
+					for _, file in ipairs(ugenrlFiles) do
+						local fileCategory = file:match("^([^%.]+)")
+						if fileCategory == category then
+							found = true
+							settings.sounds[key] = file
+							break
+						end
+					end
+	
+					if not found then
+						if #ugenrlFiles > 0 then
+							local randomIndex = math.random(1, #ugenrlFiles)
+							local randomFile = ugenrlFiles[randomIndex]
+							settings.sounds[key] = randomFile
+						end
+					end
+				end
+			end
+		end
+	end
+
+	inicfg.save(settings, settingsFile)
 end
-
+AutoActualSounds()
 
 
 function getListOfSounds(name)
