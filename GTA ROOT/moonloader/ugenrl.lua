@@ -1,6 +1,6 @@
 __name__	= 'ugenrl'
-__version__ = '1.2.9'
-__author__	= 'lay3r'
+__version__ = '1.3.0'
+__author__	= 'lay3r(edited by kichiro)'
 
 local inicfg = require 'inicfg'
 local lfs = require 'lfs'
@@ -46,7 +46,73 @@ settings = inicfg.load({
 			pain = 'Pain.1.mp3'
 		}
 }, settingsFile)
-if not doesFileExist('moonloader/config/'..settingsFile) then inicfg.save(settings, settingsFile) end
+
+function getFiles(folderPath, extensions)
+    local files = {}
+
+    for file in lfs.dir(folderPath) do
+        if file ~= "." and file ~= ".." then
+            local filePath = folderPath .. "\\" .. file
+            local fileAttributes = lfs.attributes(filePath)
+
+            if fileAttributes then
+                if fileAttributes.mode == "file" then
+                    local ext = string.match(file, "%.([^.]+)$")
+                    if extensions then
+                        for _, validExt in ipairs(extensions) do
+                            if ext == validExt then
+                                table.insert(files, file)
+                                break
+                            end
+                        end
+                    else
+                        table.insert(files, file)
+                    end
+                elseif fileAttributes.mode == "directory" then
+                    local subfolderPath = filePath
+                    for _, subfile in ipairs(getFiles(subfolderPath, extensions)) do
+                        table.insert(files, file .. "\\" .. subfile)
+                    end
+                end
+            end
+        end
+    end
+
+    return files
+end
+
+if not doesFileExist('moonloader/config/' .. settingsFile) then
+    local ugenrlFiles = getFiles('moonloader/resource/ugenrl', {'wav', 'mp3'})
+
+    for key, value in pairs(settings.sounds) do
+        local soundPath = 'moonloader/resource/ugenrl/' .. value
+
+        if not doesFileExist(soundPath) then
+            local category = value:match("^([^%.]+)")
+            local found = false
+
+            for _, file in ipairs(ugenrlFiles) do
+                local fileCategory = file:match("^([^%.]+)")
+                if fileCategory == category then
+                    found = true
+                    settings.sounds[key] = file
+                    break
+                end
+            end
+
+            if not found then
+                if #ugenrlFiles > 0 then
+                    local randomIndex = math.random(1, #ugenrlFiles)
+                    local randomFile = ugenrlFiles[randomIndex]
+                    settings.sounds[key] = 'ugenrl/' .. randomFile
+                end
+            end
+        end
+    end
+    inicfg.save(settings, settingsFile)
+end
+
+
 
 function getListOfSounds(name)
 	local soundFiles = {}
