@@ -47,6 +47,23 @@ settings = inicfg.load({
 		}
 }, settingsFile)
 
+function chatMessage(text)
+	if settings.main.informers then
+		sampAddChatMessage('['..string.upper(__name__)..']  {d5dedd}'..text, 0x01A0E9)
+	end
+end
+
+function isDirectoryEmpty(path)
+    local i = 0
+    for file in lfs.dir(path) do
+        if file ~= "." and file ~= ".." then
+            i = i + 1
+            break
+        end
+    end
+    return i == 0
+end
+
 function getFiles(folderPath, extensions)
     local files = {}
 
@@ -86,6 +103,14 @@ end
 function AutoActualSounds()
 	local configFile =  'moonloader/config/' .. settingsFile
 	local ugenrlFiles = getFiles('moonloader/resource/ugenrl', {'wav', 'mp3'})
+
+	if isDirectoryEmpty('moonloader/resource/ugenrl') then
+		chatMessage("Папка или звуки по пути {01a0e9}moonloader/resource/ugenrl{d5dedd} не найдены! Скрипт выгружен =D")
+		thisScript():unload()
+	else
+		chatMessage('Loaded. v'..__version__)
+	end
+
 
 	if not doesFileExist(configFile) then
 		for key, value in pairs(settings.sounds) do
@@ -324,11 +349,6 @@ function imgui.OnDrawFrame()
 	end
 end
 
-function chatMessage(text)
-	if settings.main.informers then
-		sampAddChatMessage('['..string.upper(__name__)..']  {d5dedd}'..text, 0x01A0E9)
-	end
-end
 
 function printMessage(text)
 	if settings.main.informers then 	
@@ -342,7 +362,6 @@ function main()
 	while not isSampAvailable() do wait(100) end
 	if settings.main.enable then offSound(true) end
 	sampRegisterChatCommand('ugs', function() show_main_window.v = not show_main_window.v end)
-	chatMessage('Loaded. v'..__version__)
 	if readMemory(0xBA6798, 1, true) == 0 then
 		wait(5000)
 		chatMessage('Radio volume is at 0. Set it to 1 or higher and restart the game.')
