@@ -104,12 +104,7 @@ function AutoActualSounds()
 	local configFile =  'moonloader/config/' .. settingsFile
 	local ugenrlFiles = getFiles('moonloader/resource/ugenrl', {'wav', 'mp3'})
 
-	if isDirectoryEmpty('moonloader/resource/ugenrl') then
-		chatMessage("Папка или звуки по пути {01a0e9}moonloader/resource/ugenrl{d5dedd} не найдены! Скрипт выгружен =D")
-		thisScript():unload()
-	else
-		chatMessage('Loaded. v'..__version__)
-	end
+
 
 
 	if not doesFileExist(configFile) then
@@ -171,7 +166,6 @@ function AutoActualSounds()
 
 	inicfg.save(settings, settingsFile)
 end
-AutoActualSounds()
 
 
 function getListOfSounds(name)
@@ -357,6 +351,13 @@ function printMessage(text)
 end
 
 function main()
+	if isDirectoryEmpty('moonloader/resource/ugenrl') then
+		chatMessage("Папка или звуки по пути {01a0e9}moonloader/resource/ugenrl{d5dedd} не найдены! Скрипт выгружен =D")
+		thisScript():unload()
+	else
+		chatMessage('Loaded. v'..__version__)
+		AutoActualSounds()
+	end
 	loadSounds()
 	if not isSampfuncsLoaded() or not isSampLoaded() then return end
 	while not isSampAvailable() do wait(100) end
