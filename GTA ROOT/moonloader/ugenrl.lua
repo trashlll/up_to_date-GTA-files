@@ -351,6 +351,12 @@ function printMessage(text)
 end
 
 function main()
+
+	if not isSampfuncsLoaded() or not isSampLoaded() then return end
+	while not isSampAvailable() do wait(100) end
+
+	loadSounds()
+
 	if isDirectoryEmpty('moonloader/resource/ugenrl') then
 		chatMessage("Папка или звуки по пути {01a0e9}moonloader/resource/ugenrl{d5dedd} не найдены! Скрипт выгружен =D")
 		thisScript():unload()
@@ -358,9 +364,7 @@ function main()
 		chatMessage('Loaded. v'..__version__)
 		AutoActualSounds()
 	end
-	loadSounds()
-	if not isSampfuncsLoaded() or not isSampLoaded() then return end
-	while not isSampAvailable() do wait(100) end
+
 	if settings.main.enable then offSound(true) end
 	sampRegisterChatCommand('ugs', function() show_main_window.v = not show_main_window.v end)
 	if readMemory(0xBA6798, 1, true) == 0 then
