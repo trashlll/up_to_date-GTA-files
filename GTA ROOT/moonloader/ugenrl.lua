@@ -1,10 +1,11 @@
-__name__	= 'ugenrl'
-__version__ = '1.3.0'
-__author__	= 'lay3r(edited by kichiro)'
+__name__	= 'ULTIMATE GENRL'
+__version__ = '1.3.2'
+__author__	= 'lay3r'
 
 local inicfg = require 'inicfg'
 local lfs = require 'lfs'
 local imgui = require 'imgui'
+local memory = require "memory"
 local weaponSoundDelay = {[9] = 200, [37] = 900}
 
 local soundsDir = 'moonloader/resource/ugenrl/'
@@ -19,7 +20,7 @@ settings = inicfg.load({
 			enemyWeaponDist = 70,
 			hit = true,
 			pain = true,
-			informers = true
+			notifications = true
 		},
 	volume =
 		{
@@ -46,127 +47,11 @@ settings = inicfg.load({
 			pain = 'Pain.1.mp3'
 		}
 }, settingsFile)
+if not doesFileExist('moonloader/config/'..settingsFile) then inicfg.save(settings, settingsFile) end
 
-function chatMessage(text)
-	if settings.main.informers then
-		sampAddChatMessage('['..string.upper(__name__)..']  {d5dedd}'..text, 0x01A0E9)
-	end
-end
-
-function isDirectoryEmpty(path)
-    local i = 0
-    for file in lfs.dir(path) do
-        if file ~= "." and file ~= ".." then
-            i = i + 1
-            break
-        end
-    end
-    return i == 0
-end
-
-function getFiles(folderPath, extensions)
-    local files = {}
-
-    for file in lfs.dir(folderPath) do
-        if file ~= "." and file ~= ".." then
-            local filePath = folderPath .. "\\" .. file
-            local fileAttributes = lfs.attributes(filePath)
-
-            if fileAttributes then
-                if fileAttributes.mode == "file" then
-                    local ext = string.match(file, "%.([^.]+)$")
-                    if extensions then
-                        for _, validExt in ipairs(extensions) do
-                            if ext == validExt then
-                                table.insert(files, file)
-                                break
-                            end
-                        end
-                    else
-                        table.insert(files, file)
-                    end
-                elseif fileAttributes.mode == "directory" then
-                    local subfolderPath = filePath
-                    for _, subfile in ipairs(getFiles(subfolderPath, extensions)) do
-                        table.insert(files, file .. "\\" .. subfile)
-                    end
-                end
-            end
-        end
-    end
-
-    return files
-end
-
-
-
-function AutoActualSounds()
-	local configFile =  'moonloader/config/' .. settingsFile
-	local ugenrlFiles = getFiles('moonloader/resource/ugenrl', {'wav', 'mp3'})
-
-
-
-
-	if not doesFileExist(configFile) then
-		for key, value in pairs(settings.sounds) do
-			local soundPath = 'moonloader/resource/ugenrl/' .. value
-
-			if not doesFileExist(soundPath) then
-				local category = value:match("^([^%.]+)")
-				local found = false
-
-				for _, file in ipairs(ugenrlFiles) do
-					local fileCategory = file:match("^([^%.]+)")
-					if fileCategory == category then
-						found = true
-						settings.sounds[key] = file
-						break
-					end
-				end
-
-				if not found then
-					if #ugenrlFiles > 0 then
-						local randomIndex = math.random(1, #ugenrlFiles)
-						local randomFile = ugenrlFiles[randomIndex]
-						settings.sounds[key] = randomFile
-					end
-				end
-			end
-		end
-	else
-		local loaded_settings = inicfg.load(nil, configFile)
-		if loaded_settings.sounds then
-			for key, value in pairs(loaded_settings.sounds) do
-				local soundPath = 'moonloader/resource/ugenrl/' .. value
-	
-				if not doesFileExist(soundPath) then
-					local category = value:match("^([^%.]+)")
-					local found = false
-	
-					for _, file in ipairs(ugenrlFiles) do
-						local fileCategory = file:match("^([^%.]+)")
-						if fileCategory == category then
-							found = true
-							settings.sounds[key] = file
-							break
-						end
-					end
-	
-					if not found then
-						if #ugenrlFiles > 0 then
-							local randomIndex = math.random(1, #ugenrlFiles)
-							local randomFile = ugenrlFiles[randomIndex]
-							settings.sounds[key] = randomFile
-						end
-					end
-				end
-			end
-		end
-	end
-
-	inicfg.save(settings, settingsFile)
-end
-
+function onSystemInitialized()
+	memory.setfloat(11926728, 1.0, false) -- Gorskin
+ end
 
 function getListOfSounds(name)
 	local soundFiles = {}
@@ -185,6 +70,7 @@ function loadSounds()
 	hitSounds = getListOfSounds('Hit')
 	painSounds = getListOfSounds('Pain')
 end
+
 
 function offSound(bool)
 	if bool then 
@@ -207,7 +93,7 @@ local weapon_checkbox = imgui.ImBool(settings.main.weapon)
 local enemyweapon_checkbox = imgui.ImBool(settings.main.enemyWeapon)
 local hit_checkbox = imgui.ImBool(settings.main.hit)
 local pain_checkbox = imgui.ImBool(settings.main.pain)
-local informers_checkbox = imgui.ImBool(settings.main.informers)
+local notifications_checkbox = imgui.ImBool(settings.main.notifications)
 local weapon_volume_slider = imgui.ImFloat(settings.volume.weapon)
 local hit_volume_slider = imgui.ImFloat(settings.volume.hit)
 local pain_volume_slider = imgui.ImFloat(settings.volume.pain)
@@ -250,40 +136,40 @@ function imgui.OnDrawFrame()
 				imgui.OpenPopup('#Settings')
 			end
 			if imgui.BeginPopup('#Settings') then 
-				if imgui.BeginMenu('Set sounds') then
-					if imgui.BeginMenu('Deagle (Current is "'..settings.sounds[24]..'")') then
-						if imgui.ListBox('##listbox0', deagle_selected, deagleSounds, 25) then
+				if imgui.BeginMenu('Sounds') then
+					if imgui.BeginMenu('Deagle ('..settings.sounds[24]..')') then
+						if imgui.ListBox('##listbox0', deagle_selected, deagleSounds, 20) then
 							changeSound(24, deagleSounds[deagle_selected.v+1])
 						end
 						imgui.EndMenu()
 					end
-					if imgui.BeginMenu('Shotgun (Current is "'..settings.sounds[25]..'")') then
-						if imgui.ListBox('##listbox1', shotgun_selected, shotgunSounds, 25) then
+					if imgui.BeginMenu('Shotgun ('..settings.sounds[25]..')') then
+						if imgui.ListBox('##listbox1', shotgun_selected, shotgunSounds, 20) then
 							changeSound(25, shotgunSounds[shotgun_selected.v+1])
 						end
 						imgui.EndMenu()
 					end
-					if imgui.BeginMenu('M4 (Current is "'..settings.sounds[31]..'")') then
-						if imgui.ListBox('##listbox2', m4_selected, m4Sounds, 25) then
+					if imgui.BeginMenu('M4 ('..settings.sounds[31]..')') then
+						if imgui.ListBox('##listbox2', m4_selected, m4Sounds, 20) then
 							changeSound(31, m4Sounds[m4_selected.v+1])
 						end
 						imgui.EndMenu()
 					end
-					if imgui.BeginMenu('Hit (Current is "'..settings.sounds.hit..'")') then
-						if imgui.ListBox('##listbox3', hit_selected, hitSounds, 25) then
+					if imgui.BeginMenu('Hit ('..settings.sounds.hit..')') then
+						if imgui.ListBox('##listbox3', hit_selected, hitSounds, 20) then
 							changeSound('hit', hitSounds[hit_selected.v+1])
 						end
 						imgui.EndMenu()
 					end
-					if imgui.BeginMenu('Pain (Current is "'..settings.sounds.pain..'")') then
-						if imgui.ListBox('##listbox4', pain_selected, painSounds, 25) then
+					if imgui.BeginMenu('Pain ('..settings.sounds.pain..')') then
+						if imgui.ListBox('##listbox4', pain_selected, painSounds, 20) then
 							changeSound('pain', painSounds[pain_selected.v+1])
 						end
 						imgui.EndMenu()
 					end
 					imgui.EndMenu()
 				end
-				if imgui.BeginMenu('Set volume') then
+				if imgui.BeginMenu('Volume') then
 					imgui.Text('Weapon')
 					if imgui.SliderFloat('##sliderfloat0', weapon_volume_slider, 0.00, 1.00, '%.2f') then
 						settings.volume.weapon = weapon_volume_slider.v
@@ -307,8 +193,8 @@ function imgui.OnDrawFrame()
 						settings.main.enemyWeaponDist = enemyweapon_dist.v
 						inicfg.save(settings, settingsFile)
 					end
-					if imgui.Checkbox('Chat and print Informers', informers_checkbox) then
-						switchMainSettings('informers')
+					if imgui.Checkbox('Notifications', notifications_checkbox) then
+						switchMainSettings('notifications')
 					end
 					imgui.EndMenu()
 				end
@@ -343,47 +229,35 @@ function imgui.OnDrawFrame()
 	end
 end
 
+function chatMessage(text)
+		sampAddChatMessage('{ff4747}['..string.upper(__name__)..']  {d5dedd}'..text, -1)
+end
 
 function printMessage(text)
-	if settings.main.informers then 	
-		printStringNow(__name__..' '..text, 1500) 
+	if settings.main.notifications then 	
+		printStringNow(text, 2000) 
 	end
 end
 
 function main()
-
+	loadSounds()
 	if not isSampfuncsLoaded() or not isSampLoaded() then return end
 	while not isSampAvailable() do wait(100) end
-
-	loadSounds()
-
-	if isDirectoryEmpty('moonloader/resource/ugenrl') then
-		chatMessage("Папка или звуки по пути {01a0e9}moonloader/resource/ugenrl{d5dedd} не найдены! Скрипт выгружен =D")
-		thisScript():unload()
-	else
-		chatMessage('Loaded. v'..__version__)
-		AutoActualSounds()
-	end
-
 	if settings.main.enable then offSound(true) end
 	sampRegisterChatCommand('ugs', function() show_main_window.v = not show_main_window.v end)
-	if readMemory(0xBA6798, 1, true) == 0 then
-		wait(5000)
-		chatMessage('Radio volume is at 0. Set it to 1 or higher and restart the game.')
-	end
 	while true do
 		wait(0)
 		if isKeyDown(18) and isKeyJustPressed(85) and not show_main_window.v then
 			switchMainSettings('enable')
 			enable_checkbox = imgui.ImBool(settings.main.enable)
 			if settings.main.enable then
-				printMessage('~g~on')
+				printMessage(__name__..' is ~g~ON')
 			else
-				printMessage('~r~off')
+				printMessage(__name__..' is ~r~OFF')
 			end
 		end	
 		imgui.Process = show_main_window.v
-		if settings.main.enable then
+		if settings.main.enable and sampIsLocalPlayerSpawned() then
 			if settings.main.weapon then
 				if isCharShooting(PLAYER_PED) then
 					playSound(settings.sounds[getCurrentCharWeapon(PLAYER_PED)], settings.volume.weapon)
@@ -413,7 +287,11 @@ function main()
 end
 
 function playSound(soundFile, soundVol, charHandle)
-	if not soundFile then return false end
+	if not soundFile or not doesFileExist(soundsDir..soundFile) then 
+		chatMessage("Файл " .. soundFile .. " не найден, звук отключен. ({47ff72}{ff4747}'/ugs' {47ff72}для откючения скрипта{d5dedd})")
+		return false 
+	end
+	if audio then collectgarbage() end
 	if charHandle == nil then
 		audio = loadAudioStream(soundsDir..soundFile)
 	else
@@ -458,8 +336,76 @@ function onReceiveRpc(id, bs)
 	end
 end
 
+function theme()
+    imgui.SwitchContext()
+    local style = imgui.GetStyle()
+    local colors = style.Colors
+    local clr = imgui.Col
+    local ImVec4 = imgui.ImVec4
+    local ImVec2 = imgui.ImVec2
+
+    style.WindowPadding = imgui.ImVec2(8, 8)
+    style.WindowRounding = 6
+    style.ChildWindowRounding = 5
+    style.FramePadding = imgui.ImVec2(5, 3)
+    style.FrameRounding = 3.0
+    style.ItemSpacing = imgui.ImVec2(5, 4)
+    style.ItemInnerSpacing = imgui.ImVec2(4, 4)
+    style.IndentSpacing = 21
+    style.ScrollbarSize = 10.0
+    style.ScrollbarRounding = 13
+    style.GrabMinSize = 8
+    style.GrabRounding = 1
+    style.WindowTitleAlign = imgui.ImVec2(0.5, 0.5)
+    style.ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
+
+    colors[clr.Text]                   = ImVec4(0.95, 0.96, 0.98, 1.00);
+    colors[clr.TextDisabled]           = ImVec4(0.29, 0.29, 0.29, 1.00);
+    colors[clr.WindowBg]               = ImVec4(0.14, 0.14, 0.14, 1.00);
+    colors[clr.ChildWindowBg]          = ImVec4(0.12, 0.12, 0.12, 1.00);
+    colors[clr.PopupBg]                = ImVec4(0.08, 0.08, 0.08, 0.94);
+    colors[clr.Border]                 = ImVec4(0.14, 0.14, 0.14, 1.00);
+    colors[clr.BorderShadow]           = ImVec4(1.00, 1.00, 1.00, 0.10);
+    colors[clr.FrameBg]                = ImVec4(0.22, 0.22, 0.22, 1.00);
+    colors[clr.FrameBgHovered]         = ImVec4(0.18, 0.18, 0.18, 1.00);
+    colors[clr.FrameBgActive]          = ImVec4(0.09, 0.12, 0.14, 1.00);
+    colors[clr.TitleBg]                = ImVec4(0.14, 0.14, 0.14, 0.81);
+    colors[clr.TitleBgActive]          = ImVec4(0.14, 0.14, 0.14, 1.00);
+    colors[clr.TitleBgCollapsed]       = ImVec4(0.00, 0.00, 0.00, 0.51);
+    colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
+    colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
+    colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
+    colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
+    colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
+    colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
+    colors[clr.CheckMark]              = ImVec4(1.00, 0.28, 0.28, 1.00);
+    colors[clr.SliderGrab]             = ImVec4(1.00, 0.28, 0.28, 1.00);
+    colors[clr.SliderGrabActive]       = ImVec4(1.00, 0.28, 0.28, 1.00);
+    colors[clr.Button]                 = ImVec4(1.00, 0.28, 0.28, 1.00);
+    colors[clr.ButtonHovered]          = ImVec4(1.00, 0.39, 0.39, 1.00);
+    colors[clr.ButtonActive]           = ImVec4(1.00, 0.21, 0.21, 1.00);
+    colors[clr.Header]                 = ImVec4(1.00, 0.28, 0.28, 1.00);
+    colors[clr.HeaderHovered]          = ImVec4(1.00, 0.39, 0.39, 1.00);
+    colors[clr.HeaderActive]           = ImVec4(1.00, 0.21, 0.21, 1.00);
+    colors[clr.ResizeGrip]             = ImVec4(1.00, 0.28, 0.28, 1.00);
+    colors[clr.ResizeGripHovered]      = ImVec4(1.00, 0.39, 0.39, 1.00);
+    colors[clr.ResizeGripActive]       = ImVec4(1.00, 0.19, 0.19, 1.00);
+    colors[clr.CloseButton]            = ImVec4(0.40, 0.39, 0.38, 0.16);
+    colors[clr.CloseButtonHovered]     = ImVec4(0.40, 0.39, 0.38, 0.39);
+    colors[clr.CloseButtonActive]      = ImVec4(0.40, 0.39, 0.38, 1.00);
+    colors[clr.PlotLines]              = ImVec4(0.61, 0.61, 0.61, 1.00);
+    colors[clr.PlotLinesHovered]       = ImVec4(1.00, 0.43, 0.35, 1.00);
+    colors[clr.PlotHistogram]          = ImVec4(1.00, 0.21, 0.21, 1.00);
+    colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
+    colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
+    colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
+end
+theme()
+
 function onScriptTerminate(script, quitGame)
-	if script == thisScript() and not quitGame then 
-		chatMessage('Script is unloaded.')
+	if script == thisScript() and not quitGame then
+		offSound(false)
+		printMessage(__name__..' is ~r~OFF')
+		chatMessage('{ffaf47}Script is dead.')
 	end
 end
