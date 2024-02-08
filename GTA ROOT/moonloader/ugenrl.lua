@@ -288,6 +288,7 @@ end
 
 function playSound(soundFile, soundVol, charHandle)
 	if not soundFile or not doesFileExist(soundsDir..soundFile) then 
+		if not soundFile then soundFile = "для этого оружия" end
 		chatMessage("Файл " .. soundFile .. " не найден, звук отключен. ({47ff72}{ff4747}'/ugs' {47ff72}для откючения скрипта{d5dedd})")
 		return false 
 	end
